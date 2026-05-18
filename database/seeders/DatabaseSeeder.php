@@ -93,7 +93,7 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call(TeacherQuizSeeder::class);
-        //$this->call(TeacherQuizResultSeeder::class);
+        $this->call(TeacherQuizResultSeeder::class);
 
         $this->command->newLine();
         $this->command->info('🎯 ======================== QuizQuest Seeder ========================');

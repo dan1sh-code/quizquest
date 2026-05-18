@@ -74,7 +74,7 @@ Route::middleware(['auth','verified','role:teacher'])->prefix('teacher')->name('
     Route::get('/classes/{classroom}/students',  [TeacherClassController::class, 'students'])->name('classes.students');
     Route::get('/grading',                       [TeacherGradingController::class, 'index'])->name('grading.index');
     Route::post('/grading/{answer}/grade',       [TeacherGradingController::class, 'grade'])->name('grading.grade');
-    //Route::get('/analytics',                     [TeacherAnalyticsController::class, 'index'])->name('analytics');
+    Route::get('/analytics',                     [TeacherAnalyticsController::class, 'index'])->name('analytics');
     Route::get('/question-bank',                  [TeacherQuestionBankController::class, 'index'])->name('question-bank');
     Route::post('/question-bank',                 [TeacherQuestionBankController::class, 'store'])->name('question-bank.store');
     Route::delete('/question-bank/quizzes/{quiz}', [TeacherQuestionBankController::class, 'destroyQuiz'])->name('question-bank.quizzes.destroy');
