@@ -1,0 +1,86 @@
+.qb-select,
+.qb-input {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(226 232 240);
+  background: rgb(255 255 255);
+  color: rgb(15 23 42);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  outline: none;
+  padding: 0.625rem 0.75rem;
+}
+
+.dark .qb-select,
+.dark .qb-input {
+  border-color: rgb(51 65 85);
+  background: rgb(30 41 59);
+  color: rgb(248 250 252);
+}
+
+.qb-select:focus,
+.qb-input:focus {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px rgb(139 92 246);
+}
+
+.qb-difficulty {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.25rem 0.625rem;
+}
+
+.qb-difficulty.easy {
+  background: rgb(220 252 231);
+  color: rgb(22 101 52);
+}
+
+.qb-difficulty.medium {
+  background: rgb(254 249 195);
+  color: rgb(133 77 14);
+}
+
+.qb-difficulty.hard {
+  background: rgb(254 226 226);
+  color: rgb(153 27 27);
+}
+
+.dark .qb-difficulty.easy {
+  background: rgba(22, 163, 74, 0.18);
+  color: rgb(134 239 172);
+}
+
+.dark .qb-difficulty.medium {
+  background: rgba(234, 179, 8, 0.18);
+  color: rgb(253 224 71);
+}
+
+.dark .qb-difficulty.hard {
+  background: rgba(220, 38, 38, 0.18);
+  color: rgb(252 165 165);
+}
+
+.qb-icon-button {
+  align-items: center;
+  border-radius: 0.625rem;
+  color: rgb(100 116 139);
+  display: inline-flex;
+  height: 2rem;
+  justify-content: center;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+  width: 2rem;
+}
+
+.qb-icon-button:hover {
+  background: rgb(241 245 249);
+  color: rgb(109 40 217);
+  transform: translateY(-1px);
+}
+
+.dark .qb-icon-button:hover {
+  background: rgb(30 41 59);
+  color: rgb(196 181 253);
+}

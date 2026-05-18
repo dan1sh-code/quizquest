@@ -92,6 +92,9 @@ class DatabaseSeeder extends Seeder
             $quiz->questions()->create(['question_text'=>'Jelaskan apa yang dimaksud bilangan prima dan berikan 3 contohnya!','type'=>'essay','explanation'=>'Bilangan prima: 2, 3, 5, 7, 11, 13...','points'=>20,'order'=>4,'has_ai_discussion'=>true]);
         }
 
+        $this->call(TeacherQuizSeeder::class);
+        //$this->call(TeacherQuizResultSeeder::class);
+
         $this->command->newLine();
         $this->command->info('🎯 ======================== QuizQuest Seeder ========================');
         $this->command->info('✅ Database berhasil di-seed!');
