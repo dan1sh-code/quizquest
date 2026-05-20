@@ -1,10 +1,15 @@
 import React, { useMemo } from 'react'
 import { motion } from 'framer-motion'
 
-export default function ParticleBackground() {
+interface ParticleBackgroundProps {
+    density?: 'full' | 'subtle'
+}
+
+export default function ParticleBackground({ density = 'full' }: ParticleBackgroundProps) {
     // Generate static stars to prevent jumping on re-renders
+    const starCount = density === 'subtle' ? 35 : 100
     const stars = useMemo(() => {
-        return Array.from({ length: 100 }).map((_, i) => ({
+        return Array.from({ length: starCount }).map((_, i) => ({
             id: i,
             x: Math.random() * 100,
             y: Math.random() * 100,
@@ -12,7 +17,7 @@ export default function ParticleBackground() {
             duration: Math.random() * 30 + 15,
             delay: Math.random() * -30,
         }))
-    }, [])
+    }, [starCount])
 
     return (
         <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-[#0a0a1a]">

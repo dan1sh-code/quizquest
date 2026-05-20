@@ -17,6 +17,9 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminCategoryController;
 use App\Http\Controllers\Admin\AdminSettingsController;
 use App\Http\Controllers\Admin\AdminAnnouncementController;
+use App\Http\Controllers\Admin\AdminReportController;
+use App\Http\Controllers\Admin\AdminActivityLogController;
+use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Api\AiApiController;
 
 // ── Public ──────────────────────────────────────────────────────────
@@ -85,19 +88,65 @@ Route::middleware(['auth','verified','role:admin'])->prefix('admin')->name('admi
     Route::post('/users/{user}/toggle-status',      [AdminUserController::class, 'toggleStatus'])->name('users.toggle');
     Route::delete('/users/{user}',                  [AdminUserController::class, 'destroy'])->name('users.destroy');
     Route::get('/categories',                       [AdminCategoryController::class, 'index'])->name('categories.index');
+    Route::get('/categories/create',                [AdminCategoryController::class, 'create'])->name('categories.create');
+    Route::get('/categories/{category}/edit',       [AdminCategoryController::class, 'edit'])->name('categories.edit');
     Route::post('/categories',                      [AdminCategoryController::class, 'store'])->name('categories.store');
     Route::put('/categories/{category}',            [AdminCategoryController::class, 'update'])->name('categories.update');
     Route::delete('/categories/{category}',         [AdminCategoryController::class, 'destroy'])->name('categories.destroy');
     Route::get('/announcements',                    [AdminAnnouncementController::class, 'index'])->name('announcements.index');
+    Route::get('/announcements/create',             [AdminAnnouncementController::class, 'create'])->name('announcements.create');
     Route::post('/announcements',                   [AdminAnnouncementController::class, 'store'])->name('announcements.store');
+    Route::get('/announcements/{announcement}/edit',[AdminAnnouncementController::class, 'edit'])->name('announcements.edit');
     Route::put('/announcements/{announcement}',     [AdminAnnouncementController::class, 'update'])->name('announcements.update');
     Route::delete('/announcements/{announcement}',  [AdminAnnouncementController::class, 'destroy'])->name('announcements.destroy');
     Route::get('/settings',  [AdminSettingsController::class, 'index'])->name('settings');
     Route::post('/settings', [AdminSettingsController::class, 'update'])->name('settings.update');
-    Route::get('/quizzes', fn() => Inertia::render('Admin/Quizzes'))->name('quizzes.index');
-    Route::get('/reports',  fn() => Inertia::render('Admin/Reports'))->name('reports');
-    Route::get('/logs',     fn() => Inertia::render('Admin/Logs'))->name('logs');
-    Route::get('/profile',  fn() => Inertia::render('Admin/Profile'))->name('profile');
+    Route::get('/quizzes', [\App\Http\Controllers\Admin\AdminQuizController::class, 'index'])->name('quizzes.index');
+    Route::get('/quizzes/{quiz}', [\App\Http\Controllers\Admin\AdminQuizController::class, 'show'])->name('quizzes.show');
+    Route::delete('/quizzes/{quiz}/questions/{question}', [\App\Http\Controllers\Admin\AdminQuizController::class, 'destroyQuestion'])->name('quizzes.questions.destroy');
+    Route::delete('/quizzes/{quiz}/questions', [\App\Http\Controllers\Admin\AdminQuizController::class, 'clearQuestions'])->name('quizzes.questions.clear');
+    Route::delete('/quizzes/{quiz}', [\App\Http\Controllers\Admin\AdminQuizController::class, 'destroy'])->name('quizzes.destroy');
+    
+    // Reports
+    Route::get('/reports', [AdminReportController::class, 'index'])->name('reports');
+    Route::get('/reports/filter-options', [AdminReportController::class, 'getFilterOptions'])->name('reports.filter-options');
+    
+    // Student Performance Report
+    Route::get('/reports/student-performance', [AdminReportController::class, 'studentPerformance'])->name('reports.student-performance');
+    Route::get('/reports/student-performance/export-excel', [AdminReportController::class, 'exportStudentPerformanceExcel'])->name('reports.student-performance.excel');
+    Route::get('/reports/student-performance/export-pdf', [AdminReportController::class, 'exportStudentPerformancePdf'])->name('reports.student-performance.pdf');
+    
+    // Quiz Analytics Report
+    Route::get('/reports/quiz-analytics', [AdminReportController::class, 'quizAnalytics'])->name('reports.quiz-analytics');
+    Route::get('/reports/quiz-analytics/export-excel', [AdminReportController::class, 'exportQuizAnalyticsExcel'])->name('reports.quiz-analytics.excel');
+    Route::get('/reports/quiz-analytics/export-pdf', [AdminReportController::class, 'exportQuizAnalyticsPdf'])->name('reports.quiz-analytics.pdf');
+    
+    // Class Report
+    Route::get('/reports/class', [AdminReportController::class, 'classReport'])->name('reports.class');
+    Route::get('/reports/class/export-excel', [AdminReportController::class, 'exportClassReportExcel'])->name('reports.class.excel');
+    
+    // Achievement Report
+    Route::get('/reports/achievement', [AdminReportController::class, 'achievementReport'])->name('reports.achievement');
+    Route::get('/reports/achievement/export-excel', [AdminReportController::class, 'exportAchievementReportExcel'])->name('reports.achievement.excel');
+    
+    // User Activity Report
+    Route::get('/reports/user-activity', [AdminReportController::class, 'userActivity'])->name('reports.user-activity');
+    Route::get('/reports/user-activity/export-excel', [AdminReportController::class, 'exportUserActivityExcel'])->name('reports.user-activity.excel');
+    Route::get('/reports/user-activity/export-pdf', [AdminReportController::class, 'exportUserActivityPdf'])->name('reports.user-activity.pdf');
+    
+    // Leaderboard Report
+    Route::get('/reports/leaderboard', [AdminReportController::class, 'leaderboard'])->name('reports.leaderboard');
+    Route::get('/reports/leaderboard/export-excel', [AdminReportController::class, 'exportLeaderboardExcel'])->name('reports.leaderboard.excel');
+    
+    Route::get('/logs',     [AdminActivityLogController::class, 'index'])->name('logs');
+    Route::get('/profile', [AdminProfileController::class, 'index'])->name('profile');
+    Route::post('/profile', [AdminProfileController::class, 'updateProfile'])->name('profile.update');
+    Route::put('/profile/password', [AdminProfileController::class, 'updatePassword'])->name('profile.password');
+    Route::post('/profile/logout-other-sessions', [AdminProfileController::class, 'logoutOtherSessions'])->name('profile.logout-other-sessions');
+    Route::delete('/profile/deactivate', [AdminProfileController::class, 'deactivate'])->name('profile.deactivate');
+    Route::get('/category', [AdminCategoryController::class, 'index']);
+    Route::get('/category/create', [AdminCategoryController::class, 'create']);
+    Route::post('/category', [AdminCategoryController::class, 'store']);
 });
 
 // ── Internal API (AI) ─────────────────────────────────────────────────
