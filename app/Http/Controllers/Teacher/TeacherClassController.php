@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
-use App\Models\{Category, ClassRoom};
+use App\Models\{Category, ClassRoom, User};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\{Inertia, Response};
@@ -90,7 +90,21 @@ class TeacherClassController extends Controller
 
     public function students(ClassRoom $classroom): Response
     {
-        return Inertia::render('Teacher/ClassStudents', ['classroom' => $classroom->load('students')]);
+        $classroom->load(['students' => fn ($query) => $query->select('users.id', 'name', 'email', 'avatar', 'xp', 'level', 'school', 'grade')]);
+        $classroom->loadCount('quizzes');
+
+        $classroom->students->each(function ($student) {
+            $student->avatar_url = $student->avatar_url;
+        });
+
+        return Inertia::render('Teacher/ClassStudents', ['classroom' => $classroom]);
+    }
+
+    public function removeStudent(ClassRoom $classroom, User $student)
+    {
+        $classroom->students()->detach($student->id);
+
+        return back()->with('success', 'Murid berhasil dikeluarkan dari kelas.');
     }
 
     private function subjectCategories()

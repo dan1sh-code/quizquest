@@ -73,6 +73,7 @@ Route::middleware(['auth','verified','role:teacher'])->prefix('teacher')->name('
     Route::put('/classes/{classroom}',           [TeacherClassController::class, 'update'])->name('classes.update');
     Route::delete('/classes/{classroom}',        [TeacherClassController::class, 'destroy'])->name('classes.destroy');
     Route::get('/classes/{classroom}/students',  [TeacherClassController::class, 'students'])->name('classes.students');
+    Route::delete('/classes/{classroom}/students/{student}', [TeacherClassController::class, 'removeStudent'])->name('classes.students.destroy');
     Route::get('/grading',                       [TeacherGradingController::class, 'index'])->name('grading.index');
     Route::post('/grading/{answer}/grade',       [TeacherGradingController::class, 'grade'])->name('grading.grade');
     Route::get('/analytics',                     [TeacherAnalyticsController::class, 'index'])->name('analytics');
