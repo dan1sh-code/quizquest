@@ -41,6 +41,21 @@ export default function Classes({ classes }: any) {
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {classes.data.map((cls: any) => (
                         <div key={cls.id} className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden group hover:shadow-xl transition-all duration-300 flex flex-col">
+                            <div className="relative aspect-[16/8] overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600">
+                                {cls.cover_image ? (
+                                    <img
+                                        src={`/storage/${cls.cover_image}`}
+                                        alt={`Thumbnail ${cls.name}`}
+                                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                                        style={{ objectPosition: `${cls.cover_position_x ?? 50}% ${cls.cover_position_y ?? 50}%` }}
+                                    />
+                                ) : (
+                                    <div className="flex h-full w-full items-center justify-center text-5xl font-black text-white/90">
+                                        {cls.name.charAt(0)}
+                                    </div>
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/35 to-transparent" />
+                            </div>
                             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-start gap-4">
                                 <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30 flex-shrink-0">
                                     {cls.name.charAt(0)}

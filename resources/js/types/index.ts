@@ -59,6 +59,9 @@ export interface ClassRoom {
     teacher?: User
     name: string
     code: string
+    cover_image?: string | null
+    cover_position_x?: number
+    cover_position_y?: number
     description?: string
     subject?: string
     grade_level?: string
