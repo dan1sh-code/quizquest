@@ -75,6 +75,8 @@ class TeacherQuizResultSeeder extends Seeder
                 $this->createAnswers($attempt, $quiz, $targetPercentage);
             }
         }
+
+        $this->createPendingEssayAttempts($students);
     }
 
     private function createAnswers(QuizAttempt $attempt, Quiz $quiz, int $targetPercentage): void
@@ -158,6 +160,93 @@ class TeacherQuizResultSeeder extends Seeder
         $scores = [95, 88, 76, 68, 54, 82, 91, 73];
 
         return $scores[($quizIndex + $studentIndex) % count($scores)];
+    }
+
+    private function createPendingEssayAttempts($students): void
+    {
+        $quiz = Quiz::where('join_code', 'ESSAY01')
+            ->with(['questions.options'])
+            ->first();
+
+        if (! $quiz) {
+            return;
+        }
+
+        foreach ($students->take(3)->values() as $studentIndex => $student) {
+            $attempt = QuizAttempt::firstOrCreate(
+                [
+                    'quiz_id' => $quiz->id,
+                    'user_id' => $student->id,
+                    'attempt_number' => 2,
+                ],
+                [
+                    'status' => 'grading',
+                    'started_at' => now()->subHours(3)->subMinutes($studentIndex * 18),
+                    'completed_at' => now()->subHours(2)->subMinutes($studentIndex * 12),
+                    'time_taken' => 900 + ($studentIndex * 120),
+                    'score' => 0,
+                    'max_score' => $quiz->questions->sum('points'),
+                    'percentage' => 0,
+                    'passed' => false,
+                    'xp_earned' => 0,
+                ]
+            );
+
+            if ($attempt->answers()->exists()) {
+                continue;
+            }
+
+            foreach ($quiz->questions as $index => $question) {
+                if ($question->type === 'multiple_choice') {
+                    $option = $question->options->firstWhere('is_correct', true);
+
+                    AttemptAnswer::create([
+                        'attempt_id' => $attempt->id,
+                        'question_id' => $question->id,
+                        'selected_option_id' => $option?->id,
+                        'is_correct' => true,
+                        'points_earned' => $question->points,
+                        'time_spent' => 45,
+                        'grade_status' => 'auto_graded',
+                    ]);
+
+                    continue;
+                }
+
+                AttemptAnswer::create([
+                    'attempt_id' => $attempt->id,
+                    'question_id' => $question->id,
+                    'essay_answer' => $this->essayAnswer($studentIndex, $index),
+                    'is_correct' => null,
+                    'points_earned' => 0,
+                    'time_spent' => 180 + ($index * 35),
+                    'grade_status' => 'pending',
+                ]);
+            }
+        }
+    }
+
+    private function essayAnswer(int $studentIndex, int $questionIndex): string
+    {
+        $answers = [
+            [
+                'Data dan fakta penting karena membuat pendapat tidak hanya berdasarkan perasaan. Kalau ada angka, contoh kejadian, atau sumber yang jelas, pembaca lebih mudah percaya pada argumen yang disampaikan.',
+                'Teknologi membantu pembelajaran karena siswa bisa mencari materi tambahan, melihat video penjelasan, dan mengerjakan latihan online. Contohnya, ketika tidak paham materi matematika, siswa dapat menonton pembahasan ulang di rumah.',
+                'Risikonya adalah orang bisa percaya berita palsu. Misalnya membaca kabar kesehatan dari akun tidak jelas lalu langsung membagikannya. Hal itu bisa membuat orang lain ikut salah paham.',
+            ],
+            [
+                'Menurut saya fakta membuat tulisan menjadi lebih kuat. Tanpa fakta, argumen bisa terlihat seperti opini biasa. Fakta juga membantu pembaca membandingkan apakah pendapat penulis masuk akal.',
+                'Penggunaan teknologi di kelas bermanfaat karena pembelajaran jadi lebih menarik. Guru bisa memakai kuis digital, gambar, dan video. Siswa juga bisa belajar mandiri dengan bahan yang tersedia di internet.',
+                'Jika tidak memeriksa sumber berita, seseorang dapat menyebarkan informasi yang salah. Contohnya berita tentang bencana yang ternyata foto lama, tetapi sudah membuat banyak orang panik.',
+            ],
+            [
+                'Data atau fakta penting dalam argumentasi karena menjadi bukti. Dengan bukti, pembaca tidak hanya diminta setuju, tetapi dapat melihat alasan yang jelas.',
+                'Teknologi membuat belajar lebih fleksibel. Siswa bisa mengakses materi kapan saja dan berdiskusi lewat platform online. Namun penggunaannya tetap harus diarahkan agar tidak mengganggu fokus belajar.',
+                'Risikonya adalah salah mengambil keputusan. Misalnya seseorang membaca berita lowongan palsu tanpa cek sumber, lalu mengirim data pribadi ke pihak yang tidak bertanggung jawab.',
+            ],
+        ];
+
+        return $answers[$studentIndex][$questionIndex - 1] ?? 'Jawaban essay demo untuk penilaian guru.';
     }
 
     private function students(): array

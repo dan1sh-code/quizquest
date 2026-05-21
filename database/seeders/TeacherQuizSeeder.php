@@ -31,29 +31,41 @@ class TeacherQuizSeeder extends Seeder
         );
 
         foreach ($this->quizzes() as $quizData) {
-            $quiz = Quiz::firstOrCreate(
-                ['join_code' => $quizData['join_code']],
-                [
-                    'teacher_id' => $teacher->id,
-                    'class_id' => $class->id,
-                    'category_id' => Category::where('slug', $quizData['category'])->value('id'),
-                    'title' => $quizData['title'],
-                    'slug' => $quizData['slug'],
-                    'description' => $quizData['description'],
-                    'status' => $quizData['status'],
-                    'difficulty' => $quizData['difficulty'],
-                    'time_limit' => $quizData['time_limit'],
-                    'max_attempts' => $quizData['max_attempts'],
-                    'shuffle_questions' => true,
-                    'shuffle_options' => true,
-                    'show_result_immediately' => true,
-                    'show_answer_after' => true,
-                    'is_public' => true,
-                    'passing_score' => $quizData['passing_score'],
-                    'xp_reward' => $quizData['xp_reward'],
-                    'tags' => $quizData['tags'],
-                ]
-            );
+            $quizPayload = [
+                'teacher_id' => $teacher->id,
+                'class_id' => $class->id,
+                'category_id' => Category::where('slug', $quizData['category'])->value('id'),
+                'title' => $quizData['title'],
+                'slug' => $quizData['slug'],
+                'description' => $quizData['description'],
+                'status' => $quizData['status'],
+                'difficulty' => $quizData['difficulty'],
+                'time_limit' => $quizData['time_limit'],
+                'max_attempts' => $quizData['max_attempts'],
+                'shuffle_questions' => true,
+                'shuffle_options' => true,
+                'show_result_immediately' => true,
+                'show_answer_after' => true,
+                'is_public' => true,
+                'passing_score' => $quizData['passing_score'],
+                'xp_reward' => $quizData['xp_reward'],
+                'tags' => $quizData['tags'],
+            ];
+
+            $quiz = Quiz::withTrashed()
+                ->where('join_code', $quizData['join_code'])
+                ->orWhere('slug', $quizData['slug'])
+                ->first();
+
+            if ($quiz) {
+                if ($quiz->trashed()) {
+                    $quiz->restore();
+                }
+
+                $quiz->fill(['join_code' => $quizData['join_code'], ...$quizPayload])->save();
+            } else {
+                $quiz = Quiz::create(['join_code' => $quizData['join_code'], ...$quizPayload]);
+            }
 
             if ($quiz->questions()->exists()) {
                 continue;
@@ -254,6 +266,51 @@ class TeacherQuizSeeder extends Seeder
                         'text' => 'Buat satu paragraf singkat berisi argumen tentang pentingnya membaca buku.',
                         'points' => 20,
                         'explanation' => 'Jawaban ideal memiliki pendapat, alasan, dan contoh pendukung.',
+                    ],
+                ],
+            ],
+            [
+                'join_code' => 'ESSAY01',
+                'title' => 'Analisis Teks dan Pendapat',
+                'slug' => 'analisis-teks-dan-pendapat',
+                'description' => 'Quiz demo dengan beberapa soal essay untuk menguji halaman penilaian guru.',
+                'category' => 'bahasa-indonesia',
+                'status' => 'published',
+                'difficulty' => 'medium',
+                'time_limit' => 40,
+                'max_attempts' => 2,
+                'passing_score' => 75,
+                'xp_reward' => 35,
+                'tags' => ['essay', 'argumentasi', 'demo-penilaian'],
+                'questions' => [
+                    [
+                        'type' => 'multiple_choice',
+                        'text' => 'Bagian teks argumentasi yang berisi alasan pendukung pendapat disebut ...',
+                        'explanation' => 'Alasan pendukung dalam teks argumentasi disebut argumen.',
+                        'options' => [
+                            ['text' => 'Orientasi', 'correct' => false],
+                            ['text' => 'Argumen', 'correct' => true],
+                            ['text' => 'Resolusi', 'correct' => false],
+                            ['text' => 'Koda', 'correct' => false],
+                        ],
+                    ],
+                    [
+                        'type' => 'essay',
+                        'text' => 'Jelaskan mengapa data atau fakta penting dalam sebuah teks argumentasi.',
+                        'points' => 25,
+                        'explanation' => 'Data atau fakta membuat argumen lebih kuat, objektif, dan mudah dipercaya pembaca.',
+                    ],
+                    [
+                        'type' => 'essay',
+                        'text' => 'Buat satu paragraf argumentasi tentang manfaat penggunaan teknologi dalam pembelajaran.',
+                        'points' => 30,
+                        'explanation' => 'Jawaban ideal memuat pendapat, minimal dua alasan, dan contoh yang relevan.',
+                    ],
+                    [
+                        'type' => 'essay',
+                        'text' => 'Menurutmu, apa risiko jika seseorang membaca berita tanpa memeriksa sumbernya? Jelaskan dengan contoh.',
+                        'points' => 25,
+                        'explanation' => 'Jawaban dapat menyinggung hoaks, salah informasi, dan pentingnya verifikasi sumber.',
                     ],
                 ],
             ],

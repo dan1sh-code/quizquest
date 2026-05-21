@@ -6,10 +6,33 @@ use Illuminate\Http\Request;
 use Inertia\{Inertia,Response};
 class TeacherGradingController extends Controller {
     public function index(Request $r): Response {
-        return Inertia::render('Teacher/Grading',['pendingAnswers'=>AttemptAnswer::whereHas('attempt.quiz',fn($q)=>$q->where('teacher_id',$r->user()->id))->where('grade_status','pending')->with(['attempt.user:id,name,avatar','question:id,question_text,points'])->latest()->paginate(20)->through(fn($a)=>[...$a->toArray(),'attempt'=>[...$a->attempt->toArray(),'user'=>[...$a->attempt->user->toArray(),'avatar_url'=>$a->attempt->user->avatar_url]]])]);
+        return Inertia::render('Teacher/Grading', [
+            'pendingAnswers' => AttemptAnswer::whereHas('attempt.quiz', fn($q) => $q->where('teacher_id', $r->user()->id))
+                ->where('grade_status', 'pending')
+                ->with(['attempt.user:id,name,avatar', 'attempt.quiz:id,title', 'question:id,question_text,points'])
+                ->latest()
+                ->paginate(20)
+                ->through(fn($a) => [
+                    ...$a->toArray(),
+                    'attempt' => [
+                        ...$a->attempt->toArray(),
+                        'user' => [
+                            ...$a->attempt->user->toArray(),
+                            'avatar_url' => $a->attempt->user->avatar_url,
+                        ],
+                    ],
+                    'avatar_url' => $a->attempt->user->avatar_url,
+                ]),
+        ]);
     }
     public function grade(Request $r, AttemptAnswer $answer) {
-        $r->validate(['points_earned'=>'required|integer|min:0','teacher_feedback'=>'nullable|string|max:500']);
+        abort_unless($answer->attempt?->quiz?->teacher_id === $r->user()->id, 403);
+
+        $r->validate([
+            'points_earned' => 'required|integer|min:0|max:' . $answer->question->points,
+            'teacher_feedback' => 'nullable|string|max:500',
+        ]);
+
         $answer->update(['points_earned'=>$r->points_earned,'teacher_feedback'=>$r->teacher_feedback,'grade_status'=>'graded','is_correct'=>$r->points_earned>0]);
         $attempt=$answer->attempt;
         $allGraded=!$attempt->answers()->where('grade_status','pending')->exists();
