@@ -6,6 +6,15 @@ export interface User {
     avatar?: string | null
     avatar_url: string
     bio?: string
+    phone?: string | null
+    subject_expertise?: string | null
+    education?: string | null
+    certification?: string | null
+    website?: string | null
+    linkedin?: string | null
+    portfolio_path?: string | null
+    portfolio_name?: string | null
+    portfolio_url?: string | null
     xp: number
     level: number
     streak_days: number

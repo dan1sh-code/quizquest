@@ -14,6 +14,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name','username','email','password','avatar','bio',
         'xp','level','streak_days','last_active','is_active','school','grade',
+        'phone','subject_expertise','education','certification','website','linkedin',
+        'portfolio_path','portfolio_name',
     ];
     protected $hidden = ['password','remember_token'];
     protected function casts(): array {

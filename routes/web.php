@@ -14,6 +14,7 @@ use App\Http\Controllers\Teacher\TeacherClassController;
 use App\Http\Controllers\Teacher\TeacherGradingController;
 use App\Http\Controllers\Teacher\TeacherAnalyticsController;
 use App\Http\Controllers\Teacher\TeacherQuestionBankController;
+use App\Http\Controllers\Teacher\TeacherProfileController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminCategoryController;
@@ -81,7 +82,8 @@ Route::middleware(['auth','verified','role:teacher'])->prefix('teacher')->name('
     Route::put('/question-bank/{question}',       [TeacherQuestionBankController::class, 'update'])->name('question-bank.update');
     Route::post('/question-bank/{question}/copy', [TeacherQuestionBankController::class, 'duplicate'])->name('question-bank.copy');
     Route::delete('/question-bank/{question}',    [TeacherQuestionBankController::class, 'destroy'])->name('question-bank.destroy');
-    Route::get('/profile',       fn() => Inertia::render('Teacher/Profile'))->name('profile');
+    Route::get('/profile',                       [TeacherProfileController::class, 'edit'])->name('profile');
+    Route::post('/profile',                      [TeacherProfileController::class, 'update'])->name('profile.update');
 });
 
 // ── Admin ─────────────────────────────────────────────────────────────
