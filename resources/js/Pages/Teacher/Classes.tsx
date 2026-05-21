@@ -1,17 +1,30 @@
 import React, { useState } from 'react'
 import { Link, useForm } from '@inertiajs/react'
-import { PlusCircle, Users, Copy, CheckCircle2, Edit, Trash2, Key } from 'lucide-react'
+import { AlertTriangle, PlusCircle, Users, Copy, CheckCircle2, Edit, Trash2, Key, X } from 'lucide-react'
 import AppLayout from '@/Components/Layout/AppLayout'
 import Button from '@/Components/ui/Button'
-import { cn } from '@/lib/utils'
 
 export default function Classes({ classes }: any) {
     const [copiedId, setCopiedId] = useState<number | null>(null)
+    const [deletingId, setDeletingId] = useState<number | null>(null)
+    const [classToDelete, setClassToDelete] = useState<any | null>(null)
+    const { delete: destroy, processing } = useForm()
 
     const copyCode = (id: number, code: string) => {
         navigator.clipboard.writeText(code)
         setCopiedId(id)
         setTimeout(() => setCopiedId(null), 2000)
+    }
+
+    const deleteClass = () => {
+        if (!classToDelete) return
+
+        setDeletingId(classToDelete.id)
+        destroy(`/teacher/classes/${classToDelete.id}`, {
+            preserveScroll: true,
+            onSuccess: () => setClassToDelete(null),
+            onFinish: () => setDeletingId(null),
+        })
     }
 
     return (
@@ -106,9 +119,84 @@ export default function Classes({ classes }: any) {
                                         <Edit className="w-4 h-4" />
                                     </Button>
                                 </Link>
+                                <Button
+                                    type="button"
+                                    variant="danger"
+                                    loading={processing && deletingId === cls.id}
+                                    onClick={() => setClassToDelete(cls)}
+                                    className="w-auto px-3 rounded-xl"
+                                    title="Hapus kelas"
+                                    aria-label={`Hapus kelas ${cls.name}`}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </Button>
                             </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {classToDelete && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
+                    <div className="w-full max-w-md overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+                        <div className="relative bg-gradient-to-br from-red-600 to-rose-700 p-6 text-white">
+                            <button
+                                type="button"
+                                onClick={() => setClassToDelete(null)}
+                                disabled={processing}
+                                className="absolute right-4 top-4 rounded-xl bg-white/15 p-2 text-white/80 transition hover:bg-white/25 hover:text-white disabled:opacity-50"
+                                aria-label="Tutup konfirmasi hapus"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15">
+                                <AlertTriangle className="h-8 w-8" />
+                            </div>
+                            <h3 className="text-2xl font-black">Hapus kelas?</h3>
+                            <p className="mt-2 text-sm font-medium text-red-100">
+                                Kelas <span className="font-black text-white">"{classToDelete.name}"</span> akan dihapus dari daftar kelas Anda.
+                            </p>
+                        </div>
+
+                        <div className="space-y-5 p-6">
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center dark:border-slate-700 dark:bg-slate-800/60">
+                                    <p className="text-2xl font-black text-slate-900 dark:text-white">{classToDelete.students_count || 0}</p>
+                                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Murid</p>
+                                </div>
+                                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center dark:border-slate-700 dark:bg-slate-800/60">
+                                    <p className="text-2xl font-black text-slate-900 dark:text-white">{classToDelete.quizzes_count || 0}</p>
+                                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Kuis</p>
+                                </div>
+                            </div>
+
+                            <p className="rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-700 dark:bg-red-950/30 dark:text-red-200">
+                                Aksi ini tidak bisa dibatalkan. Pastikan kelas ini memang sudah tidak dipakai.
+                            </p>
+
+                            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    disabled={processing}
+                                    onClick={() => setClassToDelete(null)}
+                                    className="rounded-xl"
+                                >
+                                    Batal
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="danger"
+                                    loading={processing && deletingId === classToDelete.id}
+                                    onClick={deleteClass}
+                                    className="rounded-xl"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    Hapus Kelas
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
         </AppLayout>
