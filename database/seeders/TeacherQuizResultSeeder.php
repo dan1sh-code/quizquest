@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\AttemptAnswer;
+use App\Models\ClassRoom;
 use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\User;
@@ -19,6 +20,17 @@ class TeacherQuizResultSeeder extends Seeder
             $this->command?->warn('Teacher demo belum ada. Jalankan DatabaseSeeder terlebih dahulu.');
             return;
         }
+
+        $class = ClassRoom::firstOrCreate(
+            ['code' => 'DEMO01'],
+            [
+                'teacher_id' => $teacher->id,
+                'name' => 'XII IPA 1 - Demo',
+                'description' => 'Kelas demo QuizQuest',
+                'subject' => 'Semua Pelajaran',
+                'grade_level' => 'XII',
+            ]
+        );
 
         $students = collect($this->students())->map(function (array $data) {
             $student = User::firstOrCreate(
@@ -41,12 +53,21 @@ class TeacherQuizResultSeeder extends Seeder
             return $student;
         });
 
+        $class->students()->syncWithoutDetaching(
+            $students->mapWithKeys(fn (User $student) => [
+                $student->id => [
+                    'status' => 'active',
+                    'joined_at' => now()->subDays(30)->addDays($student->id % 12),
+                ],
+            ])->toArray()
+        );
+
         $quizzes = Quiz::query()
             ->where('teacher_id', $teacher->id)
+            ->where('class_id', $class->id)
             ->where('status', 'published')
             ->with(['questions.options', 'questions.matchingPairs'])
             ->orderBy('id')
-            ->limit(8)
             ->get();
 
         foreach ($quizzes as $quizIndex => $quiz) {
@@ -257,6 +278,26 @@ class TeacherQuizResultSeeder extends Seeder
             ['name' => 'Siti Aulia', 'username' => 'siti_a', 'email' => 'siti@quizquest.id', 'xp' => 510, 'level' => 3],
             ['name' => 'Dimas Ramadhan', 'username' => 'dimas_r', 'email' => 'dimas@quizquest.id', 'xp' => 280, 'level' => 2],
             ['name' => 'Nadia Putri', 'username' => 'nadia_p', 'email' => 'nadia@quizquest.id', 'xp' => 690, 'level' => 4],
+            ['name' => 'Bima Saputra', 'username' => 'bima_s', 'email' => 'bima@quizquest.id', 'xp' => 760, 'level' => 4],
+            ['name' => 'Citra Lestari', 'username' => 'citra_l', 'email' => 'citra@quizquest.id', 'xp' => 610, 'level' => 4],
+            ['name' => 'Fajar Nugroho', 'username' => 'fajar_n', 'email' => 'fajar@quizquest.id', 'xp' => 530, 'level' => 3],
+            ['name' => 'Gita Maharani', 'username' => 'gita_m', 'email' => 'gita@quizquest.id', 'xp' => 840, 'level' => 4],
+            ['name' => 'Hafiz Maulana', 'username' => 'hafiz_m', 'email' => 'hafiz@quizquest.id', 'xp' => 470, 'level' => 3],
+            ['name' => 'Intan Permata', 'username' => 'intan_p', 'email' => 'intan@quizquest.id', 'xp' => 930, 'level' => 4],
+            ['name' => 'Joko Firmansyah', 'username' => 'joko_f', 'email' => 'joko@quizquest.id', 'xp' => 390, 'level' => 3],
+            ['name' => 'Kirana Safitri', 'username' => 'kirana_s', 'email' => 'kirana@quizquest.id', 'xp' => 1020, 'level' => 5],
+            ['name' => 'Lukman Hakim', 'username' => 'lukman_h', 'email' => 'lukman@quizquest.id', 'xp' => 580, 'level' => 3],
+            ['name' => 'Maya Anggraini', 'username' => 'maya_a', 'email' => 'maya@quizquest.id', 'xp' => 720, 'level' => 4],
+            ['name' => 'Naufal Rizky', 'username' => 'naufal_r', 'email' => 'naufal@quizquest.id', 'xp' => 450, 'level' => 3],
+            ['name' => 'Olivia Rahma', 'username' => 'olivia_r', 'email' => 'olivia@quizquest.id', 'xp' => 880, 'level' => 4],
+            ['name' => 'Putra Mahendra', 'username' => 'putra_m', 'email' => 'putra@quizquest.id', 'xp' => 330, 'level' => 2],
+            ['name' => 'Qori Amelia', 'username' => 'qori_a', 'email' => 'qori@quizquest.id', 'xp' => 670, 'level' => 4],
+            ['name' => 'Rafi Alfarizi', 'username' => 'rafi_a', 'email' => 'rafi@quizquest.id', 'xp' => 560, 'level' => 3],
+            ['name' => 'Salma Khairunnisa', 'username' => 'salma_k', 'email' => 'salma@quizquest.id', 'xp' => 790, 'level' => 4],
+            ['name' => 'Tegar Prakoso', 'username' => 'tegar_p', 'email' => 'tegar@quizquest.id', 'xp' => 410, 'level' => 3],
+            ['name' => 'Ulya Nabila', 'username' => 'ulya_n', 'email' => 'ulya@quizquest.id', 'xp' => 970, 'level' => 4],
+            ['name' => 'Vino Aditya', 'username' => 'vino_a', 'email' => 'vino@quizquest.id', 'xp' => 620, 'level' => 4],
+            ['name' => 'Wulan Sari', 'username' => 'wulan_s', 'email' => 'wulan@quizquest.id', 'xp' => 700, 'level' => 4],
         ];
     }
 }
