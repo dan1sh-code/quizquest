@@ -202,6 +202,7 @@ export interface Announcement {
     expires_at?: string
     creator?: User
     created_at: string
+    created_at_human?: string
 }
 
 export interface Setting {
@@ -240,6 +241,7 @@ export interface PaginatedData<T> {
 export interface PageProps {
     auth: { user: User }
     flash?: { success?: string; error?: string }
+    notifications?: Announcement[]
     ziggy?: { location: string; url: string }
     [key: string]: unknown
 }

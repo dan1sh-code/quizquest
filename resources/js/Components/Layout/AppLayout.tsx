@@ -3,15 +3,16 @@ import { Link, usePage } from '@inertiajs/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     Home, BookOpen, Trophy, Users, Settings, LogOut, Bell,
-    Moon, Sun, Search, ChevronDown, Menu, X, Zap, Target,
+    Moon, Sun, Search, ChevronDown, Menu, X, Zap, Info,
     BarChart2, PlusCircle, School, Award, History, Star,
-    Shield, ClipboardList, Tag, Megaphone, FileText,
-    GraduationCap, Edit3, Library, Activity, Gamepad2
+    Shield, ClipboardList, Tag, Megaphone, CheckCircle2,
+    GraduationCap, Edit3, Library, Activity, Gamepad2,
+    AlertTriangle, AlertCircle
 } from 'lucide-react'
 import { cn, getLevelEmoji, getLevelName, getXPProgress, avatarUrl, formatXP } from '@/lib/utils'
 import LevelIcon from '@/Components/ui/LevelIcon'
 import ParticleBackground from '@/Components/ui/ParticleBackground'
-import type { PageProps } from '@/types'
+import type { Announcement, PageProps } from '@/types'
 
 interface NavItem {
     label: string
@@ -56,10 +57,40 @@ interface AppLayoutProps {
     subtitle?: string
 }
 
+function formatRelativeTime(dateValue?: string) {
+    if (!dateValue) return ''
+
+    const date = new Date(dateValue)
+    const diffInSeconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000))
+
+    if (Number.isNaN(date.getTime())) return dateValue
+    if (diffInSeconds < 5) return 'Baru saja'
+    if (diffInSeconds < 60) return `${diffInSeconds} detik lalu`
+
+    const diffInMinutes = Math.floor(diffInSeconds / 60)
+    if (diffInMinutes < 60) return `${diffInMinutes} menit lalu`
+
+    const diffInHours = Math.floor(diffInMinutes / 60)
+    if (diffInHours < 24) return `${diffInHours} jam lalu`
+
+    const diffInDays = Math.floor(diffInHours / 24)
+    if (diffInDays < 7) return `${diffInDays} hari lalu`
+
+    const diffInWeeks = Math.floor(diffInDays / 7)
+    if (diffInWeeks < 4) return `${diffInWeeks} minggu lalu`
+
+    const diffInMonths = Math.floor(diffInDays / 30)
+    if (diffInMonths < 12) return `${diffInMonths} bulan lalu`
+
+    const diffInYears = Math.floor(diffInDays / 365)
+    return `${diffInYears} tahun lalu`
+}
+
 export default function AppLayout({ children, title, subtitle }: AppLayoutProps) {
-    const { auth, flash } = usePage<PageProps>().props
+    const { auth, flash, notifications = [] } = usePage<PageProps>().props
     const user = auth.user
     const role = user.roles?.[0]?.name ?? 'student'
+    const visibleNotifications = notifications as Announcement[]
 
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [dark, setDark] = useState(() => {
@@ -72,6 +103,27 @@ export default function AppLayout({ children, title, subtitle }: AppLayoutProps)
     const [notifOpen, setNotifOpen] = useState(false)
     const [userMenuOpen, setUserMenuOpen] = useState(false)
     const [searchOpen, setSearchOpen] = useState(false)
+    const [, setTimeTick] = useState(0)
+    const notificationRef = React.useRef<HTMLDivElement>(null)
+
+    const notificationMeta: Record<Announcement['type'], { icon: React.ElementType; className: string }> = {
+        info: {
+            icon: Info,
+            className: 'text-blue-600 bg-blue-50 ring-blue-100 dark:text-blue-300 dark:bg-blue-900/30 dark:ring-blue-800/60',
+        },
+        success: {
+            icon: CheckCircle2,
+            className: 'text-emerald-600 bg-emerald-50 ring-emerald-100 dark:text-emerald-300 dark:bg-emerald-900/30 dark:ring-emerald-800/60',
+        },
+        warning: {
+            icon: AlertTriangle,
+            className: 'text-amber-600 bg-amber-50 ring-amber-100 dark:text-amber-300 dark:bg-amber-900/30 dark:ring-amber-800/60',
+        },
+        danger: {
+            icon: AlertCircle,
+            className: 'text-red-600 bg-red-50 ring-red-100 dark:text-red-300 dark:bg-red-900/30 dark:ring-red-800/60',
+        },
+    }
 
     useEffect(() => {
         if (dark) {
@@ -91,6 +143,30 @@ export default function AppLayout({ children, title, subtitle }: AppLayoutProps)
             import('react-hot-toast').then(({ default: toast }) => toast.error(flash.error!))
         }
     }, [flash])
+
+    useEffect(() => {
+        if (!notifOpen) return
+
+        const closeOnOutsideClick = (event: MouseEvent) => {
+            if (!notificationRef.current?.contains(event.target as Node)) {
+                setNotifOpen(false)
+            }
+        }
+
+        document.addEventListener('mousedown', closeOnOutsideClick)
+
+        return () => {
+            document.removeEventListener('mousedown', closeOnOutsideClick)
+        }
+    }, [notifOpen])
+
+    useEffect(() => {
+        const timer = window.setInterval(() => setTimeTick((tick) => tick + 1), 15000)
+
+        return () => {
+            window.clearInterval(timer)
+        }
+    }, [])
 
     const navItems = getNavItems(role)
     const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
@@ -284,13 +360,17 @@ export default function AppLayout({ children, title, subtitle }: AppLayoutProps)
                         </div>}
 
                         {/* Notifications */}
-                        <div className="relative">
+                        <div ref={notificationRef} className="relative">
                             <button
                                 onClick={() => setNotifOpen(!notifOpen)}
                                 className="relative p-2 rounded-xl text-slate-500 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all"
                             >
                                 <Bell className="w-5 h-5" />
-                                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">3</span>
+                                {visibleNotifications.length > 0 && (
+                                    <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                                        {visibleNotifications.length}
+                                    </span>
+                                )}
                             </button>
                             <AnimatePresence>
                                 {notifOpen && (
@@ -305,22 +385,31 @@ export default function AppLayout({ children, title, subtitle }: AppLayoutProps)
                                             <h3 className="font-bold text-sm text-slate-900 dark:text-white">Notifikasi</h3>
                                             <button className="text-xs text-violet-600 hover:underline" onClick={() => setNotifOpen(false)}>Tutup</button>
                                         </div>
-                                        {[
-                                            { icon:<FileText className="w-5 h-5 text-blue-500"/>, title:'Quiz baru tersedia!', desc:'Pak Budi menambahkan quiz Matematika', time:'2 menit lalu' },
-                                            { icon:<Target className="w-5 h-5 text-emerald-500"/>, title:'Level Naik!', desc:'Kamu naik ke Level 3 - Cendekia!', time:'1 jam lalu' },
-                                            { icon:<Trophy className="w-5 h-5 text-amber-500"/>, title:'Achievement Baru!', desc:'Badge "Quiz Pertama" diraih', time:'Kemarin' },
-                                        ].map((n, i) => (
-                                            <div key={i} className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors border-b border-slate-50 dark:border-slate-800 last:border-0">
-                                                <div className="flex gap-3">
-                                                    <div className="mt-0.5 bg-slate-100 dark:bg-slate-800 p-2 rounded-full">{n.icon}</div>
-                                                    <div>
+                                        {visibleNotifications.length === 0 ? (
+                                            <div className="px-4 py-8 text-center">
+                                                <Bell className="w-8 h-8 mx-auto text-slate-300 dark:text-slate-600 mb-2" />
+                                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Belum ada notifikasi</p>
+                                                <p className="text-xs text-slate-500 mt-1">Pengumuman aktif akan muncul di sini.</p>
+                                            </div>
+                                        ) : visibleNotifications.map((n) => {
+                                            const meta = notificationMeta[n.type] ?? notificationMeta.info
+                                            const NotificationIcon = meta.icon
+
+                                            return (
+                                            <div key={n.id} className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors border-b border-slate-50 dark:border-slate-800 last:border-0">
+                                                <div className="flex items-start gap-3">
+                                                    <div className={cn('mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full ring-1', meta.className)}>
+                                                        <NotificationIcon className="w-4 h-4" />
+                                                    </div>
+                                                    <div className="min-w-0">
                                                         <p className="text-sm font-semibold text-slate-900 dark:text-white">{n.title}</p>
-                                                        <p className="text-xs text-slate-500">{n.desc}</p>
-                                                        <p className="text-xs text-violet-500 mt-0.5">{n.time}</p>
+                                                        <p className="text-xs text-slate-500 line-clamp-2">{n.content}</p>
+                                                        <p className="text-xs text-violet-500 mt-0.5">{formatRelativeTime(n.created_at)}</p>
                                                     </div>
                                                 </div>
                                             </div>
-                                        ))}
+                                            )
+                                        })}
                                     </motion.div>
                                 )}
                             </AnimatePresence>
