@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
     Home, BookOpen, Trophy, Users, Settings, LogOut, Bell,
     Moon, Sun, Search, ChevronDown, Menu, X, Zap, Target,
-    BarChart2, PlusCircle, School, Award, History, Star,
+    BarChart2, PlusCircle, School, Award, History, Star, CheckCircle,
     Shield, ClipboardList, Tag, Megaphone, FileText,
     GraduationCap, Edit3, Library, Activity, Gamepad2
 } from 'lucide-react'
@@ -57,7 +57,7 @@ interface AppLayoutProps {
 }
 
 export default function AppLayout({ children, title, subtitle }: AppLayoutProps) {
-    const { auth, flash } = usePage<PageProps>().props
+    const { auth, flash, notifications } = usePage<PageProps>().props
     const user = auth.user
     const role = user.roles?.[0]?.name ?? 'student'
 
@@ -94,6 +94,8 @@ export default function AppLayout({ children, title, subtitle }: AppLayoutProps)
 
     const navItems = getNavItems(role)
     const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
+    const notificationItems = notifications?.items ?? []
+    const unreadNotificationCount = notifications?.unread_count ?? 0
 
     const xpProgress = getXPProgress(user.xp, user.level)
     const levelEmoji = getLevelEmoji(user.level)
@@ -292,7 +294,11 @@ export default function AppLayout({ children, title, subtitle }: AppLayoutProps)
                                 className="relative p-2 rounded-xl text-slate-500 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all"
                             >
                                 <Bell className="w-5 h-5" />
-                                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">3</span>
+                                {unreadNotificationCount > 0 && (
+                                    <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                                        {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
+                                    </span>
+                                )}
                             </button>
                             <AnimatePresence>
                                 {notifOpen && (
@@ -307,22 +313,54 @@ export default function AppLayout({ children, title, subtitle }: AppLayoutProps)
                                             <h3 className="font-bold text-sm text-slate-900 dark:text-white">Notifikasi</h3>
                                             <button className="text-xs text-violet-600 hover:underline" onClick={() => setNotifOpen(false)}>Tutup</button>
                                         </div>
-                                        {[
-                                            { icon:<FileText className="w-5 h-5 text-blue-500"/>, title:'Quiz baru tersedia!', desc:'Pak Budi menambahkan quiz Matematika', time:'2 menit lalu' },
-                                            { icon:<Target className="w-5 h-5 text-emerald-500"/>, title:'Level Naik!', desc:'Kamu naik ke Level 3 - Cendekia!', time:'1 jam lalu' },
-                                            { icon:<Trophy className="w-5 h-5 text-amber-500"/>, title:'Achievement Baru!', desc:'Badge "Quiz Pertama" diraih', time:'Kemarin' },
-                                        ].map((n, i) => (
-                                            <div key={i} className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors border-b border-slate-50 dark:border-slate-800 last:border-0">
+                                        {notificationItems.length === 0 ? (
+                                            <div className="px-4 py-8 text-center">
+                                                <Bell className="mx-auto mb-2 h-6 w-6 text-slate-400" />
+                                                <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Belum ada notifikasi</p>
+                                                <p className="text-xs text-slate-500">Kabar baru akan muncul di sini.</p>
+                                            </div>
+                                        ) : notificationItems.map((n) => {
+                                            const icon = n.kind === 'teacher_title_granted'
+                                                ? <Award className="w-5 h-5 text-amber-500" />
+                                                : n.kind === 'student_joined_class'
+                                                    ? <Users className="w-5 h-5 text-emerald-500" />
+                                                    : n.kind === 'essay_needs_grading'
+                                                        ? <Edit3 className="w-5 h-5 text-orange-500" />
+                                                        : n.kind === 'essay_graded'
+                                                            ? <CheckCircle className="w-5 h-5 text-emerald-500" />
+                                                            : n.kind === 'quiz_completed'
+                                                                ? <CheckCircle className="w-5 h-5 text-blue-500" />
+                                                                : n.kind === 'quiz_created'
+                                                                    ? <BookOpen className="w-5 h-5 text-violet-500" />
+                                                                    : n.kind === 'class_created'
+                                                                        ? <School className="w-5 h-5 text-indigo-500" />
+                                                                        : <FileText className="w-5 h-5 text-blue-500"/>
+                                            const content = (
                                                 <div className="flex gap-3">
-                                                    <div className="mt-0.5 bg-slate-100 dark:bg-slate-800 p-2 rounded-full">{n.icon}</div>
+                                                    <div className="mt-0.5 bg-slate-100 dark:bg-slate-800 p-2 rounded-full">{icon}</div>
                                                     <div>
                                                         <p className="text-sm font-semibold text-slate-900 dark:text-white">{n.title}</p>
-                                                        <p className="text-xs text-slate-500">{n.desc}</p>
-                                                        <p className="text-xs text-violet-500 mt-0.5">{n.time}</p>
+                                                        <p className="text-xs text-slate-500">{n.message}</p>
+                                                        <p className="text-xs text-violet-500 mt-0.5">{n.created_at}</p>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            )
+
+                                            return n.url ? (
+                                                <Link
+                                                    key={n.id}
+                                                    href={n.url}
+                                                    className="block px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-50 dark:border-slate-800 last:border-0"
+                                                    onClick={() => setNotifOpen(false)}
+                                                >
+                                                    {content}
+                                                </Link>
+                                            ) : (
+                                                <div key={n.id} className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-50 dark:border-slate-800 last:border-0">
+                                                    {content}
+                                                </div>
+                                            )
+                                        })}
                                     </motion.div>
                                 )}
                             </AnimatePresence>

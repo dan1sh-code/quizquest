@@ -80,7 +80,7 @@ class User extends Authenticatable
                 default      => false,
             };
             if ($met) {
-                $user->achievements()->attach($ach->id,['earned_at'=>now()]);
+                $user->achievements()->syncWithoutDetaching([$ach->id => ['earned_at'=>now()]]);
                 if ($ach->xp_reward > 0) $user->addXp($ach->xp_reward,'achievement',"Pencapaian: {$ach->name}",$ach);
             }
         }

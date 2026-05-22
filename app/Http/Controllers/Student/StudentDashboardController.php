@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\{Quiz, User, Achievement};
+use App\Notifications\TeacherStudentActivity;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\{Inertia, Response};
@@ -60,6 +61,20 @@ class StudentDashboardController extends Controller
         $quiz = Quiz::where('join_code',strtoupper(trim($request->code)))->first();
         if (!$quiz) return back()->with('error','Kode quiz tidak ditemukan!');
         if (!$quiz->isAvailable()) return back()->with('error','Quiz ini sedang tidak tersedia!');
+
+        if ($quiz->class_id) {
+            $classroom = $quiz->classroom()->with('teacher')->first();
+            $alreadyJoined = $request->user()->classes()->where('classes.id', $quiz->class_id)->exists();
+
+            if ($classroom && !$alreadyJoined) {
+                $classroom->students()->attach($request->user()->id, [
+                    'status' => 'active',
+                    'joined_at' => now(),
+                ]);
+                $classroom->teacher?->notify(new TeacherStudentActivity('student_joined_class', $request->user(), $classroom));
+            }
+        }
+
         return redirect()->route('student.quiz.start',$quiz->id);
     }
 

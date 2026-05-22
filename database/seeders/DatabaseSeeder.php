@@ -44,6 +44,15 @@ class DatabaseSeeder extends Seeder
             ['Speed Runner','speed-runner','Selesaikan quiz <60 detik','⚡','speed',60,100,'epic'],
         ] as [$n,$s,$d,$e,$t,$th,$xp,$r]) Achievement::firstOrCreate(['slug'=>$s],['name'=>$n,'description'=>$d,'badge_emoji'=>$e,'type'=>$t,'threshold'=>$th,'xp_reward'=>$xp,'rarity'=>$r,'is_active'=>true]);
 
+        // Teacher-granted titles
+        foreach ([
+            ['Problem Solver','teacher-title-problem-solver','Diberikan guru untuk murid yang jago memecahkan soal sulit.','🏅','teacher_title',0,0,'rare'],
+            ['Teman Diskusi','teacher-title-teman-diskusi','Diberikan guru untuk murid yang aktif membantu diskusi kelas.','🏅','teacher_title',0,0,'common'],
+            ['Konsisten','teacher-title-konsisten','Diberikan guru untuk murid yang rajin hadir dan mengerjakan latihan.','🏅','teacher_title',0,0,'common'],
+            ['Pemimpin Kelompok','teacher-title-pemimpin-kelompok','Diberikan guru untuk murid yang bisa memimpin kerja kelompok dengan baik.','🏅','teacher_title',0,0,'rare'],
+            ['Bintang Kelas','teacher-title-bintang-kelas','Diberikan guru untuk murid dengan kontribusi kelas yang menonjol.','🏅','teacher_title',0,0,'epic'],
+        ] as [$n,$s,$d,$e,$t,$th,$xp,$r]) Achievement::updateOrCreate(['slug'=>$s],['name'=>$n,'description'=>$d,'badge_emoji'=>$e,'type'=>$t,'threshold'=>$th,'xp_reward'=>$xp,'rarity'=>$r,'is_active'=>true]);
+
         // Settings
         foreach ([
             ['site_name','QuizQuest','general','string'],['site_tagline','Belajar Seru, Raih Bintang!','general','string'],
@@ -92,6 +101,7 @@ class DatabaseSeeder extends Seeder
             $quiz->questions()->create(['question_text'=>'Jelaskan apa yang dimaksud bilangan prima dan berikan 3 contohnya!','type'=>'essay','explanation'=>'Bilangan prima: 2, 3, 5, 7, 11, 13...','points'=>20,'order'=>4,'has_ai_discussion'=>true]);
         }
 
+        $this->call(TeacherTitleSeeder::class);
         $this->call(TeacherQuizSeeder::class);
         $this->call(TeacherQuizResultSeeder::class);
 

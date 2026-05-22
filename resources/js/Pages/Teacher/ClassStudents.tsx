@@ -1,15 +1,16 @@
 import React, { useState } from 'react'
-import { Link, useForm } from '@inertiajs/react'
-import { AlertTriangle, ArrowLeft, BookOpen, CheckCircle2, Copy, GraduationCap, Key, Mail, School, Trash2, Users, X } from 'lucide-react'
+import { Link, router, useForm } from '@inertiajs/react'
+import { AlertTriangle, ArrowLeft, Award, BookOpen, CheckCircle2, Copy, GraduationCap, Key, Mail, School, Trash2, Users, X } from 'lucide-react'
 import AppLayout from '@/Components/Layout/AppLayout'
 import Button from '@/Components/ui/Button'
-import type { User } from '@/types'
+import type { Achievement, User } from '@/types'
 
 type Student = User & {
     pivot?: {
         status?: string
         joined_at?: string
     }
+    achievements?: Achievement[]
 }
 
 type Classroom = {
@@ -26,10 +27,12 @@ type Classroom = {
     students: Student[]
 }
 
-export default function ClassStudents({ classroom }: { classroom: Classroom }) {
+export default function ClassStudents({ classroom, teacherTitles = [] }: { classroom: Classroom; teacherTitles: Achievement[] }) {
     const [copied, setCopied] = useState(false)
     const [studentToRemove, setStudentToRemove] = useState<Student | null>(null)
     const [removingId, setRemovingId] = useState<number | null>(null)
+    const [selectedTitleByStudent, setSelectedTitleByStudent] = useState<Record<number, string>>({})
+    const [processingTitleKey, setProcessingTitleKey] = useState<string | null>(null)
     const { delete: destroy, processing } = useForm()
 
     const copyCode = () => {
@@ -46,6 +49,31 @@ export default function ClassStudents({ classroom }: { classroom: Classroom }) {
             preserveScroll: true,
             onSuccess: () => setStudentToRemove(null),
             onFinish: () => setRemovingId(null),
+        })
+    }
+
+    const grantTitle = (student: Student) => {
+        const achievementId = selectedTitleByStudent[student.id]
+        if (!achievementId) return
+
+        const key = `grant-${student.id}`
+        setProcessingTitleKey(key)
+        router.post(
+            `/teacher/classes/${classroom.id}/students/${student.id}/titles`,
+            { achievement_id: Number(achievementId) },
+            {
+                preserveScroll: true,
+                onFinish: () => setProcessingTitleKey(null),
+            },
+        )
+    }
+
+    const revokeTitle = (student: Student, achievement: Achievement) => {
+        const key = `revoke-${student.id}-${achievement.id}`
+        setProcessingTitleKey(key)
+        router.delete(`/teacher/classes/${classroom.id}/students/${student.id}/titles/${achievement.id}`, {
+            preserveScroll: true,
+            onFinish: () => setProcessingTitleKey(null),
         })
     }
 
@@ -136,13 +164,40 @@ export default function ClassStudents({ classroom }: { classroom: Classroom }) {
                             </div>
                         ) : (
                             <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800">
-                                {classroom.students.map((student) => (
-                                    <div key={student.id} className="flex flex-col gap-4 border-b border-slate-100 p-4 last:border-b-0 dark:border-slate-800 sm:flex-row sm:items-center">
-                                        <img
-                                            src={student.avatar_url}
-                                            alt={student.name}
-                                            className="h-14 w-14 rounded-2xl object-cover ring-2 ring-slate-100 dark:ring-slate-800"
-                                        />
+                                {classroom.students.map((student) => {
+                                    const hasTeacherTitle = (student.achievements?.length ?? 0) > 0
+                                    const primaryTitle = student.achievements?.[0]
+
+                                    return (
+                                    <div
+                                        key={student.id}
+                                        className={`relative flex flex-col gap-4 border-b p-4 last:border-b-0 sm:flex-row sm:items-center ${
+                                            hasTeacherTitle
+                                                ? 'border-amber-200 bg-gradient-to-r from-amber-50 via-white to-white dark:border-amber-900/50 dark:from-amber-950/20 dark:via-slate-900 dark:to-slate-900'
+                                                : 'border-slate-100 dark:border-slate-800'
+                                        }`}
+                                    >
+                                        {primaryTitle && (
+                                            <div className="absolute right-4 top-3 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-lg shadow-amber-500/20">
+                                                {primaryTitle.name}
+                                            </div>
+                                        )}
+                                        <div className="relative">
+                                            <img
+                                                src={student.avatar_url}
+                                                alt={student.name}
+                                                className={`h-14 w-14 rounded-2xl object-cover ring-2 ${
+                                                    hasTeacherTitle
+                                                        ? 'ring-amber-400 shadow-lg shadow-amber-500/20'
+                                                        : 'ring-slate-100 dark:ring-slate-800'
+                                                }`}
+                                            />
+                                            {hasTeacherTitle && (
+                                                <span className="absolute -bottom-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-amber-500 text-white shadow-md dark:border-slate-900">
+                                                    <Award className="h-4 w-4" />
+                                                </span>
+                                            )}
+                                        </div>
                                         <div className="min-w-0 flex-1">
                                             <div className="flex flex-wrap items-center gap-2">
                                                 <h4 className="font-black text-slate-900 dark:text-white">{student.name}</h4>
@@ -160,6 +215,59 @@ export default function ClassStudents({ classroom }: { classroom: Classroom }) {
                                             <p className="text-lg font-black text-slate-900 dark:text-white">{student.xp || 0}</p>
                                             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">XP</p>
                                         </div>
+                                        <div className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 sm:max-w-sm">
+                                            <div className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-500">
+                                                <Award className="h-4 w-4 text-amber-500" />
+                                                Title Guru
+                                            </div>
+                                            <div className="mb-3 flex flex-wrap gap-2">
+                                                {student.achievements && student.achievements.length > 0 ? (
+                                                    student.achievements.map((achievement) => (
+                                                        <span
+                                                            key={achievement.id}
+                                                            className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-800 dark:bg-amber-950/40 dark:text-amber-200"
+                                                        >
+                                                            {achievement.name}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => revokeTitle(student, achievement)}
+                                                                disabled={processingTitleKey === `revoke-${student.id}-${achievement.id}`}
+                                                                className="rounded-full text-amber-700 transition hover:text-red-600 disabled:opacity-50 dark:text-amber-200"
+                                                                aria-label={`Cabut title ${achievement.name} dari ${student.name}`}
+                                                            >
+                                                                <X className="h-3.5 w-3.5" />
+                                                            </button>
+                                                        </span>
+                                                    ))
+                                                ) : (
+                                                    <span className="text-xs font-medium text-slate-400">Belum ada title dari guru.</span>
+                                                )}
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <select
+                                                    value={selectedTitleByStudent[student.id] || ''}
+                                                    onChange={(event) => setSelectedTitleByStudent((current) => ({ ...current, [student.id]: event.target.value }))}
+                                                    className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:focus:ring-violet-950"
+                                                >
+                                                    <option value="">Pilih title</option>
+                                                    {teacherTitles.map((title) => (
+                                                        <option key={title.id} value={title.id}>
+                                                            {title.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <Button
+                                                    type="button"
+                                                    variant="secondary"
+                                                    disabled={!selectedTitleByStudent[student.id] || processingTitleKey === `grant-${student.id}`}
+                                                    loading={processingTitleKey === `grant-${student.id}`}
+                                                    onClick={() => grantTitle(student)}
+                                                    className="rounded-xl px-3 text-xs"
+                                                >
+                                                    Beri
+                                                </Button>
+                                            </div>
+                                        </div>
                                         <Button
                                             type="button"
                                             variant="danger"
@@ -172,7 +280,8 @@ export default function ClassStudents({ classroom }: { classroom: Classroom }) {
                                             <Trash2 className="h-4 w-4" />
                                         </Button>
                                     </div>
-                                ))}
+                                    )
+                                })}
                             </div>
                         )}
                     </div>
