@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Models\{Category, ClassRoom, Question, Quiz, QuizAttempt};
+use App\Notifications\TeacherContentCreated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\{Inertia, Response};
@@ -44,6 +45,7 @@ class TeacherQuizController extends Controller
         ]);
         $quiz = $request->user()->quizzes()->create($validated);
         $this->syncQuestions($quiz, $request->input('questions', []));
+        $request->user()->notify(new TeacherContentCreated('quiz_created', $quiz));
         return redirect()->route('teacher.quizzes.results', $quiz->id)
             ->with('success', $validated['status']==='published' ? 'Quiz dipublish! 🚀' : 'Draft tersimpan! 💾');
     }

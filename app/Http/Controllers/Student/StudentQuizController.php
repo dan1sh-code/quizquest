@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\{Quiz, QuizAttempt, AttemptAnswer, Setting};
+use App\Notifications\TeacherStudentActivity;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\{Inertia, Response};
@@ -103,6 +104,9 @@ class StudentQuizController extends Controller
         if (!$hasEssay) {
             $request->user()->addXp($xpEarned,'quiz_complete',"Menyelesaikan: {$quiz->title}",$quiz);
             $this->updateStreak($request->user(),$xpEarned);
+            $quiz->teacher?->notify(new TeacherStudentActivity('quiz_completed', $request->user(), $quiz->classroom, $quiz, $attempt->fresh()));
+        } else {
+            $quiz->teacher?->notify(new TeacherStudentActivity('essay_needs_grading', $request->user(), $quiz->classroom, $quiz, $attempt->fresh()));
         }
         
         return redirect()->route('student.quiz.result',$attempt->id);

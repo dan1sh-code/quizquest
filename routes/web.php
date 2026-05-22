@@ -76,6 +76,8 @@ Route::middleware(['auth','verified','role:teacher'])->prefix('teacher')->name('
     Route::put('/classes/{classroom}',           [TeacherClassController::class, 'update'])->name('classes.update');
     Route::delete('/classes/{classroom}',        [TeacherClassController::class, 'destroy'])->name('classes.destroy');
     Route::get('/classes/{classroom}/students',  [TeacherClassController::class, 'students'])->name('classes.students');
+    Route::post('/classes/{classroom}/students/{student}/titles', [TeacherClassController::class, 'grantTitle'])->name('classes.students.titles.store');
+    Route::delete('/classes/{classroom}/students/{student}/titles/{achievement}', [TeacherClassController::class, 'revokeTitle'])->name('classes.students.titles.destroy');
     Route::delete('/classes/{classroom}/students/{student}', [TeacherClassController::class, 'removeStudent'])->name('classes.students.destroy');
     Route::get('/grading',                       [TeacherGradingController::class, 'index'])->name('grading.index');
     Route::post('/grading/{answer}/grade',       [TeacherGradingController::class, 'grade'])->name('grading.grade');

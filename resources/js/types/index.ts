@@ -252,6 +252,18 @@ export interface PaginatedData<T> {
 export interface PageProps {
     auth: { user: User }
     flash?: { success?: string; error?: string }
+    notifications?: {
+        unread_count: number
+        items: {
+            id: string
+            kind: string
+            title: string
+            message: string
+            url?: string | null
+            read_at?: string | null
+            created_at?: string | null
+        }[]
+    }
     ziggy?: { location: string; url: string }
     [key: string]: unknown
 }

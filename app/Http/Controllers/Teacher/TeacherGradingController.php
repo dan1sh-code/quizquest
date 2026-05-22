@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Teacher;
 use App\Http\Controllers\Controller;
 use App\Models\{AttemptAnswer,QuizAttempt,Setting};
+use App\Notifications\StudentEssayGraded;
 use Illuminate\Http\Request;
 use Inertia\{Inertia,Response};
 class TeacherGradingController extends Controller {
@@ -49,6 +50,7 @@ class TeacherGradingController extends Controller {
             
             $attempt->user->addXp($xpEarned,'quiz_complete',"Menyelesaikan: {$quiz->title}",$quiz);
             $this->updateStreak($attempt->user,$xpEarned);
+            $attempt->user->notify(new StudentEssayGraded($quiz, $attempt->fresh(), $r->user()));
         }
         return back()->with('success','Essay dinilai! ✅');
     }
