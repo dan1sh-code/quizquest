@@ -9,16 +9,22 @@ use App\Models\Setting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class GroqAiService
+class OpenRouterAiService
 {
     private string $apiKey;
     private string $model;
-    private string $baseUrl = 'https://api.groq.com/openai/v1';
+    private string $baseUrl = 'https://openrouter.ai/api/v1';
 
     public function __construct()
     {
-        $this->apiKey = Setting::get('groq_api_key') ?: config('services.groq.api_key', '');
-        $this->model  = Setting::get('groq_model')   ?: config('services.groq.model', 'llama-3.1-70b-versatile');
+        $this->apiKey = Setting::get('openrouter_api_key') ?: config('services.openrouter.api_key', '');
+        $model = Setting::get('openrouter_model');
+        // Auto-fix broken models directly in database
+        if (in_array($model, ['meta-llama/llama-3.1-8b-instruct:free', 'google/gemini-2.0-flash-lite-preview-02-05:free'])) {
+            $model = 'openrouter/free';
+            Setting::set('openrouter_model', $model);
+        }
+        $this->model = $model ?: config('services.openrouter.model', 'openrouter/free');
     }
 
     public function generateDiscussion(Question $question, QuizAttempt $attempt, ?string $studentAnswer = null): array
@@ -83,24 +89,32 @@ class GroqAiService
     private function chat(array $messages): array
     {
         if (empty($this->apiKey)) {
-            // Mocking the AI response so the user can see the UI working without an API key
-            $mockResponse = "Halo! Saya adalah AI Tutor QuizQuest (Mode Simulasi). Karena API Key Groq belum diatur, saya menggunakan balasan otomatis.\n\nPertanyaan Anda sangat bagus! Mari diskusikan lebih lanjut.";
+            $mockResponse = "Halo! Saya adalah AI Tutor QuizQuest (Mode Simulasi). Karena API Key OpenRouter belum diatur, saya menggunakan balasan otomatis.\n\nPertanyaan Anda sangat bagus! Mari diskusikan lebih lanjut.";
             return ['success'=>true,'content'=>$mockResponse,'tokens_used'=>150];
         }
         try {
-            $response = Http::timeout(30)
-                ->withHeaders(['Authorization'=>"Bearer {$this->apiKey}",'Content-Type'=>'application/json'])
+            $response = Http::timeout(45)
+                ->withHeaders([
+                    'Authorization' => "Bearer {$this->apiKey}",
+                    'HTTP-Referer' => config('app.url'),
+                    'X-Title' => config('app.name'),
+                    'Content-Type' => 'application/json'
+                ])
                 ->post("{$this->baseUrl}/chat/completions", [
-                    'model'=>$this->model,'messages'=>$messages,'temperature'=>0.7,'max_tokens'=>1024,
+                    'model' => $this->model,
+                    'messages' => $messages,
+                    'temperature' => 0.7,
+                    'max_tokens' => 1024,
                 ]);
+
             if ($response->successful()) {
                 $data = $response->json();
                 return ['success'=>true,'content'=>$data['choices'][0]['message']['content']??'','tokens_used'=>$data['usage']['total_tokens']??0];
             }
-            Log::error('Groq API Error',['status'=>$response->status(),'body'=>$response->body()]);
+            Log::error('OpenRouter API Error',['status'=>$response->status(),'body'=>$response->body()]);
             return ['success'=>false,'content'=>'Terjadi kesalahan pada layanan AI. Coba lagi nanti.'];
         } catch (\Exception $e) {
-            Log::error('Groq API Exception',['message'=>$e->getMessage()]);
+            Log::error('OpenRouter API Exception',['message'=>$e->getMessage()]);
             return ['success'=>false,'content'=>'Koneksi ke AI gagal. Periksa koneksi internet.'];
         }
     }

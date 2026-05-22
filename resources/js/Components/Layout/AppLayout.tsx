@@ -96,6 +96,7 @@ export default function AppLayout({ children, title, subtitle }: AppLayoutProps)
     const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
     const notificationItems = notifications?.items ?? []
     const unreadNotificationCount = notifications?.unread_count ?? 0
+    const isAdmin = role === 'admin'
 
     const xpProgress = getXPProgress(user.xp, user.level)
     const levelEmoji = getLevelEmoji(user.level)
@@ -129,13 +130,13 @@ export default function AppLayout({ children, title, subtitle }: AppLayoutProps)
                             className="w-10 h-10 rounded-full ring-2 ring-violet-400 object-cover"
                             alt={user.name}
                         />
-                        <span className="absolute -bottom-1 -right-1 text-sm bg-white dark:bg-slate-900 rounded-full p-1 border border-slate-200 dark:border-slate-700 shadow text-amber-500">
+                        <span className={cn("absolute -bottom-1 -right-1 text-sm bg-white dark:bg-slate-900 rounded-full p-1 border border-slate-200 dark:border-slate-700 shadow text-amber-500", isAdmin && "hidden")}>
                             <LevelIcon level={user.level} className="w-3.5 h-3.5" />
                         </span>
                     </div>
                     <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm text-slate-900 dark:text-white truncate">{user.name}</p>
-                        <div className="flex items-center gap-2 mt-1">
+                        <div className={cn("flex items-center gap-2 mt-1", isAdmin && "hidden")}>
                             <div className="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-1.5">
                                 <div
                                     className="h-1.5 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 xp-bar-fill"
@@ -146,7 +147,11 @@ export default function AppLayout({ children, title, subtitle }: AppLayoutProps)
                                 Lv.{user.level}
                             </span>
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{formatXP(user.xp)} XP · {levelName}</p>
+                        {isAdmin ? (
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Akun Administrator</p>
+                        ) : (
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{formatXP(user.xp)} XP · {levelName}</p>
+                        )}
                     </div>
                 </div>
             </div>
@@ -203,9 +208,9 @@ export default function AppLayout({ children, title, subtitle }: AppLayoutProps)
         <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 relative">
             
             {/* 3D Moving Particle Background */}
-            <div className="fixed inset-0 z-0 opacity-50 dark:opacity-80 transition-opacity duration-1000">
-                <ParticleBackground />
-                <div className="absolute inset-0 bg-slate-50/80 dark:bg-slate-950/70 backdrop-blur-sm" />
+            <div className="fixed inset-0 z-0 opacity-45 dark:opacity-70 transition-opacity duration-500 pointer-events-none">
+                <ParticleBackground density="subtle" />
+                <div className="absolute inset-0 bg-slate-50/85 dark:bg-slate-950/80" />
             </div>
 
             {/* Desktop Sidebar */}
@@ -270,22 +275,15 @@ export default function AppLayout({ children, title, subtitle }: AppLayoutProps)
                     </div>
 
                     <div className="flex items-center gap-2 ml-auto">
-                        {/* Search */}
-                        <button
-                            onClick={() => setSearchOpen(!searchOpen)}
-                            className="p-2 rounded-xl text-slate-500 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all"
-                        >
-                            <Search className="w-5 h-5" />
-                        </button>
 
                         {/* XP Badge */}
-                        <div className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-900/20 dark:to-indigo-900/20 px-3 py-1.5 rounded-xl border border-violet-100 dark:border-violet-800">
+                        {!isAdmin && <div className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-900/20 dark:to-indigo-900/20 px-3 py-1.5 rounded-xl border border-violet-100 dark:border-violet-800">
                             <Zap className="w-4 h-4 text-violet-500" />
                             <div>
                                 <p className="text-xs font-bold text-violet-700 dark:text-violet-300">{formatXP(user.xp)} XP</p>
                                 <p className="text-xs text-slate-500 leading-none">Lv.{user.level}</p>
                             </div>
-                        </div>
+                        </div>}
 
                         {/* Notifications */}
                         <div className="relative">
@@ -391,9 +389,13 @@ export default function AppLayout({ children, title, subtitle }: AppLayoutProps)
                                         <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
                                             <p className="font-bold text-sm text-slate-900 dark:text-white">{user.name}</p>
                                             <p className="text-xs text-slate-500">{user.email}</p>
-                                            <p className="text-xs text-violet-600 dark:text-violet-400 font-medium mt-0.5 flex items-center gap-1.5">
-                                                <LevelIcon level={user.level} className="w-3.5 h-3.5 text-amber-500" /> {levelName}
-                                            </p>
+                                            {isAdmin ? (
+                                                <p className="text-xs text-violet-600 dark:text-violet-400 font-medium mt-0.5">Administrator</p>
+                                            ) : (
+                                                <p className="text-xs text-violet-600 dark:text-violet-400 font-medium mt-0.5 flex items-center gap-1.5">
+                                                    <LevelIcon level={user.level} className="w-3.5 h-3.5 text-amber-500" /> {levelName}
+                                                </p>
+                                            )}
                                         </div>
                                         <Link
                                             href={`/${role}/profile`}
@@ -420,14 +422,14 @@ export default function AppLayout({ children, title, subtitle }: AppLayoutProps)
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1 overflow-y-auto relative z-10 scroll-smooth">
+                <main className="flex-1 overflow-y-auto overscroll-contain relative z-10 scroll-smooth [scrollbar-gutter:stable]">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={currentPath}
-                            initial={{ opacity: 0, scale: 0.95, y: 30 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 1.05, y: -30 }}
-                            transition={{ duration: 0.5, type: 'spring', bounce: 0.4 }}
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -8 }}
+                            transition={{ duration: 0.18, ease: 'easeOut' }}
                             className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto min-h-full"
                         >
                             {children}

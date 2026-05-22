@@ -3,6 +3,8 @@ export interface User {
     name: string
     username?: string
     email: string
+    phone?: string | null
+    language?: string | null
     avatar?: string | null
     avatar_url: string
     bio?: string

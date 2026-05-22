@@ -21,12 +21,12 @@ export default function Login({ canResetPassword, status }: Props) {
             <div className="absolute top-20 left-10 w-64 h-64 bg-violet-600/20 rounded-full blur-3xl" />
             <div className="absolute bottom-20 right-10 w-80 h-80 bg-indigo-600/20 rounded-full blur-3xl" />
 
-            <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                 className="relative z-10 w-full max-w-md">
 
                 <div className="text-center mb-8">
                     <Link href="/" className="inline-flex items-center gap-2 mb-6">
-                        <span className="text-3xl">🎯</span>
+                        <img src="/assets/logo.png" alt="QuizQuest" className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-violet-500/30" />
                         <span className="font-black text-2xl text-white">QuizQuest</span>
                     </Link>
                     <h1 className="text-3xl font-black text-white mb-2">Selamat Datang!</h1>

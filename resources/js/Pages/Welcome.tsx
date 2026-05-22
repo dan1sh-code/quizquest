@@ -22,7 +22,7 @@ export default function Welcome({ featuredQuizzes, topStudents, categories, tota
     }, [])
 
     const features = [
-        { icon: <Bot className="w-10 h-10 text-violet-500" />, title: 'AI Tutor Pintar',     desc: 'Pembahasan soal otomatis dengan Groq LLaMA 3.1. Tanya apa saja 24/7!' },
+        { icon: <Bot className="w-10 h-10 text-violet-500" />, title: 'AI Tutor Pintar',     desc: 'Pembahasan soal otomatis dengan OpenRouter. Tanya apa saja 24/7!' },
         { icon: <Zap className="w-10 h-10 text-yellow-400" />, title: 'XP & 10 Level',        desc: 'Dari Pemula hingga Immortal. Naik level dengan belajar!' },
         { icon: <Trophy className="w-10 h-10 text-orange-400" />, title: 'Leaderboard Real-time',desc: 'Bersaing dengan ribuan murid secara real-time.' },
         { icon: <PenTool className="w-10 h-10 text-emerald-500" />, title: '5 Tipe Soal',          desc: 'Pilihan Ganda, Essay, Benar/Salah, Isian, Menjodohkan.' },

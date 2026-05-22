@@ -96,7 +96,7 @@ export default function AiDiscussion({ question, attemptId, studentAnswer }: AiD
                                 <p className="font-bold text-white text-sm">AI Tutor QuizQuest</p>
                                 <div className="flex items-center gap-1.5">
                                     <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                                    <p className="text-white/70 text-xs">Groq LLaMA 3.1 · Aktif</p>
+                                    <p className="text-white/70 text-xs">OpenRouter AI · Aktif</p>
                                 </div>
                             </div>
                             <button onClick={() => setIsOpen(false)} className="text-white/70 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10">
