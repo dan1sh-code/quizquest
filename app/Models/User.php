@@ -14,7 +14,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name','username','email','password','avatar','bio',
         'xp','level','streak_days','last_active','is_active','school','grade',
-        'phone','subject_expertise','education','certification','website','linkedin',
+        'phone','language','subject_expertise','education','certification','website','linkedin',
         'portfolio_path','portfolio_name',
     ];
     protected $hidden = ['password','remember_token'];
@@ -58,6 +58,8 @@ class User extends Authenticatable
 
     // Methods
     public function addXp(int $amount, string $type, string $description, $source=null): void {
+        if ($this->hasRole('admin')) return;
+
         $this->increment('xp',$amount);
         $fresh = $this->fresh();
         XpTransaction::create(['user_id'=>$this->id,'amount'=>$amount,'type'=>$type,'description'=>$description,'source_type'=>$source?get_class($source):null,'source_id'=>$source?->id,'balance_after'=>$fresh->xp]);

@@ -25,7 +25,7 @@ export default function Register() {
 
                 <div className="text-center mb-8">
                     <Link href="/" className="inline-flex items-center gap-2 mb-6">
-                        <span className="text-3xl">🎯</span>
+                        <img src="/assets/logo.png" alt="QuizQuest" className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-violet-500/30" />
                         <span className="font-black text-2xl text-white">QuizQuest</span>
                     </Link>
                     <h1 className="text-3xl font-black text-white mb-2">Bergabung Sekarang!</h1>

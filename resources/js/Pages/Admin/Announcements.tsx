@@ -1,5 +1,6 @@
 import React from 'react'
 import { PlusCircle, Megaphone, Calendar } from 'lucide-react'
+import { Link } from '@inertiajs/react'
 import AppLayout from '@/Components/Layout/AppLayout'
 import Button from '@/Components/ui/Button'
 import { cn } from '@/lib/utils'
@@ -11,9 +12,9 @@ export default function AnnouncementsIndex({ announcements }: any) {
                 <div>
                     <h2 className="text-2xl font-black text-slate-900 dark:text-white">Pengumuman Aktif</h2>
                 </div>
-                <Button className="rounded-2xl shadow-xl shadow-violet-500/30 gap-2 bg-gradient-to-r from-violet-600 to-indigo-600">
+                <Link href="/admin/announcements/create" className="inline-flex items-center justify-center rounded-2xl shadow-xl shadow-violet-500/30 gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-5 py-2.5 font-bold hover:opacity-90 transition-opacity">
                     <PlusCircle className="w-5 h-5" /> Buat Pengumuman
-                </Button>
+                </Link>
             </div>
 
             <div className="space-y-4 max-w-4xl">
@@ -29,10 +30,16 @@ export default function AnnouncementsIndex({ announcements }: any) {
                                     {item.is_active ? 'Aktif' : 'Nonaktif'}
                                 </span>
                             </div>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">{item.message}</p>
-                            <div className="flex items-center gap-4 text-xs font-semibold text-slate-500">
-                                <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> Dibuat: {new Date(item.created_at).toLocaleDateString('id-ID')}</span>
-                                <span>Oleh: {item.creator?.name}</span>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 whitespace-pre-wrap">{item.content}</p>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4 text-xs font-semibold text-slate-500">
+                                    <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> Dibuat: {new Date(item.created_at).toLocaleDateString('id-ID')}</span>
+                                    <span>Oleh: {item.creator?.name}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Link href={`/admin/announcements/${item.id}/edit`} className="text-xs font-bold text-violet-600 dark:text-violet-400 hover:underline">Edit</Link>
+                                    <Link href={`/admin/announcements/${item.id}`} method="delete" as="button" className="text-xs font-bold text-red-600 dark:text-red-400 hover:underline">Hapus</Link>
+                                </div>
                             </div>
                         </div>
                     </div>
