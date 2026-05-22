@@ -85,16 +85,38 @@ class TeacherQuizController extends Controller
 
     public function results(Quiz $quiz): Response {
         $this->authorize('view', $quiz);
-        $quiz->loadCount('questions');
+        $quiz->load(['category:id,name,icon,color', 'classroom:id,name,code'])->loadCount('questions');
         $attempts = $quiz->attempts()->with(['user:id,name,avatar,level'])->where('status','completed')
             ->latest('completed_at')->paginate(20)
             ->through(fn($a)=>[...$a->toArray(),'user'=>[...$a->user->toArray(),'avatar_url'=>$a->user->avatar_url]]);
+
         $completed = $quiz->attempts()->where('status','completed');
+        $completedCount = (clone $completed)->count();
+        $passedCount = (clone $completed)->where('passed', true)->count();
+        $avgScore = round((clone $completed)->avg('percentage') ?? 0, 1);
+
         return Inertia::render('Teacher/QuizResults', [
             'quiz'     => $quiz,
             'attempts' => $attempts,
-            'avgScore' => round($completed->avg('percentage') ?? 0, 1),
-            'passRate' => $completed->count() > 0 ? round($completed->where('passed',true)->count() / $completed->count() * 100) : 0,
+            'avgScore' => $avgScore,
+            'passRate' => $completedCount > 0 ? round($passedCount / $completedCount * 100) : 0,
+            'stats'    => [
+                'completed'   => $completedCount,
+                'inProgress'  => $quiz->attempts()->where('status', 'in_progress')->count(),
+                'passed'      => $passedCount,
+                'failed'      => max(0, $completedCount - $passedCount),
+                'highestScore'=> round((clone $completed)->max('percentage') ?? 0, 1),
+                'lowestScore' => round((clone $completed)->min('percentage') ?? 0, 1),
+                'lowestRawScore' => round((clone $completed)->min('score') ?? 0, 1),
+                'maxScore'    => round((clone $completed)->max('max_score') ?? 0, 1),
+                'totalXp'     => (int) (clone $completed)->sum('xp_earned'),
+            ],
+            'scoreBuckets' => [
+                'excellent' => (clone $completed)->where('percentage', '>=', 85)->count(),
+                'good'      => (clone $completed)->whereBetween('percentage', [70, 84.99])->count(),
+                'review'    => (clone $completed)->whereBetween('percentage', [50, 69.99])->count(),
+                'critical'  => (clone $completed)->where('percentage', '<', 50)->count(),
+            ],
         ]);
     }
 
