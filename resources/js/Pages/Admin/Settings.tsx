@@ -10,8 +10,8 @@ export default function AdminSettings({ settings }: Props) {
     const { data, setData, post, processing } = useForm({
         site_name: settings.site_name ?? 'QuizQuest',
         site_tagline: settings.site_tagline ?? 'Belajar Seru, Raih Bintang!',
-        groq_api_key: '',
-        groq_model: settings.groq_model ?? 'llama-3.1-70b-versatile',
+        openrouter_api_key: '',
+        openrouter_model: settings.openrouter_model ?? 'openrouter/free',
         ai_enabled: settings.ai_enabled === '1',
         allow_registration: settings.allow_registration !== '0',
         quiz_xp_base: settings.quiz_xp_base ?? '10',
@@ -49,14 +49,14 @@ export default function AdminSettings({ settings }: Props) {
 
                     {/* AI */}
                     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 mb-5 space-y-4">
-                        <h3 className="font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">🤖 AI Tutor (Groq API)</h3>
-                        <div><label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Groq API Key</label>
-                        <input type="password" value={data.groq_api_key} onChange={e => setData('groq_api_key', e.target.value)}
-                            placeholder="gsk_xxxxxxxx... (kosongkan jika tidak ingin mengubah)" className={inputCls} />
-                        <p className="text-xs text-slate-500 mt-1.5">Daftar gratis di <a href="https://console.groq.com" target="_blank" rel="noopener" className="text-violet-600 hover:underline">console.groq.com</a></p></div>
+                        <h3 className="font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">🤖 AI Tutor (OpenRouter API)</h3>
+                        <div><label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">OpenRouter API Key</label>
+                        <input type="password" value={data.openrouter_api_key} onChange={e => setData('openrouter_api_key', e.target.value)}
+                            placeholder="sk-or-v1-... (kosongkan jika tidak ingin mengubah)" className={inputCls} />
+                        <p className="text-xs text-slate-500 mt-1.5">Dapatkan API key di <a href="https://openrouter.ai" target="_blank" rel="noopener" className="text-violet-600 hover:underline">openrouter.ai</a></p></div>
                         <div><label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Model AI</label>
-                        <select value={data.groq_model} onChange={e => setData('groq_model', e.target.value)} className={inputCls}>
-                            {['llama-3.1-70b-versatile','llama-3.1-8b-instant','llama3-70b-8192','mixtral-8x7b-32768'].map(m => (
+                        <select value={data.openrouter_model} onChange={e => setData('openrouter_model', e.target.value)} className={inputCls}>
+                            {['openrouter/free','google/gemini-2.0-flash-exp:free','meta-llama/llama-3.3-70b-instruct:free'].map(m => (
                                 <option key={m} value={m}>{m}</option>
                             ))}
                         </select></div>
