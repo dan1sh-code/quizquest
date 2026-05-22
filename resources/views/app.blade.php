@@ -14,7 +14,8 @@
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
         <!-- Favicon -->
-        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+        <link rel="icon" type="image/png" href="{{ asset('assets/logo.png') }}">
+        <link rel="apple-touch-icon" href="{{ asset('assets/logo.png') }}">
 
         @routes
         @viteReactRefresh

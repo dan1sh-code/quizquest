@@ -2,10 +2,10 @@
 namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\{Question,QuizAttempt,AiDiscussion};
-use App\Services\GroqAiService;
+use App\Services\OpenRouterAiService;
 use Illuminate\Http\{JsonResponse,Request};
 class AiApiController extends Controller {
-    public function __construct(private GroqAiService $ai) {}
+    public function __construct(private OpenRouterAiService $ai) {}
     public function discuss(Request $r): JsonResponse {
         $r->validate(['question_id'=>'required|integer|exists:questions,id','attempt_id'=>'required|integer|exists:quiz_attempts,id','student_answer'=>'nullable|string|max:2000']);
         $attempt=QuizAttempt::find($r->attempt_id);
